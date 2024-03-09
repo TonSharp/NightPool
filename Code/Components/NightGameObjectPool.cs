@@ -6,8 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+
 #if UNITY_EDITOR
 using UnityEditor;
 using NTC.Pool.Attributes;
@@ -22,85 +24,90 @@ namespace NTC.Pool
     [DisallowMultipleComponent]
     [HelpURL(Constants.HelpUrl)]
     [AddComponentMenu(Constants.NightPoolComponentPath + "Night Game Object Pool")]
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 #endif
     public sealed class NightGameObjectPool : MonoBehaviour
     {
-        [Header("Main")]
-        [Tooltip("Prefab of this pool.")]
-        [SerializeField] internal GameObject _prefab;
-        [Tooltip(Constants.Tooltips.OverflowBehaviour)]
-        [SerializeField] internal BehaviourOnCapacityReached _behaviourOnCapacityReached = Constants.DefaultBehaviourOnCapacityReached;
-        [Tooltip(Constants.Tooltips.DespawnType)]
-        [SerializeField] internal DespawnType _despawnType = Constants.DefaultDespawnType;
-        [Tooltip("Capacity of this pool.")]
-        [SerializeField, Delayed, Min(0)] private int _capacity = 32;
-        
-        [Header("Preload")]
-        [Tooltip("Clones preload type of this pool.")]
-        [SerializeField] private PreloadType _preloadType = PreloadType.Disabled;
-        [Tooltip("Preload size of this pool.")]
-        [SerializeField, Delayed, Min(0)] private int _preloadSize = 16;
-        
-        [Header("Callbacks")]
-        [Tooltip(Constants.Tooltips.CallbacksType)]
-        [SerializeField] internal CallbacksType _callbacksType = Constants.DefaultCallbacksType;
-        
-        [Header("Persistent")]
-        [Tooltip("Should this pool be persistent?")]
-        [SerializeField] internal bool _dontDestroyOnLoad;
-        
-        [Header("Debug")]
-        [Tooltip("Should this pool find issues and log warnings?")]
-        [SerializeField] internal bool _sendWarnings = true;
-        
+        [Header("Main")] [Tooltip("Prefab of this pool.")] [SerializeField]
+        internal GameObject _prefab;
+
+        [Tooltip(Constants.Tooltips.OverflowBehaviour)] [SerializeField]
+        internal BehaviourOnCapacityReached _behaviourOnCapacityReached = Constants.BehaviourOnCapacityReached;
+
+        [Tooltip(Constants.Tooltips.DespawnTypeTooltip)] [SerializeField]
+        internal DespawnType _despawnType = Constants.DespawnType;
+
+        [Tooltip("Capacity of this pool.")] [SerializeField, Delayed, Min(0)]
+        private int _capacity = 32;
+
+        [Header("Preload")] [Tooltip("Clones preload type of this pool.")] [SerializeField]
+        private PreloadType _preloadType = PreloadType.Disabled;
+
+        [Tooltip("Preload size of this pool.")] [SerializeField, Delayed, Min(0)]
+        private int _preloadSize = 16;
+
+        [Header("Callbacks")] [Tooltip(Constants.Tooltips.CallbacksTypeTooltip)] [SerializeField]
+        internal CallbacksType _callbacksType = Constants.CallbacksType;
+
+        [Header("Persistent")] [Tooltip("Should this pool be persistent?")] [SerializeField]
+        internal bool _dontDestroyOnLoad;
+
+        [Header("Debug")] [Tooltip("Should this pool find issues and log warnings?")] [SerializeField]
+        internal bool _sendWarnings = true;
+
 #if UNITY_EDITOR
         [Space, ReadOnlyInspectorField]
 #endif
-        [SerializeField] private int _allClonesCount;
+        [SerializeField]
+        private int _allClonesCount;
 
 #if UNITY_EDITOR
         [ReadOnlyInspectorField]
 #endif
-        [SerializeField] private int _spawnedClonesCount;
-        
+        [SerializeField]
+        private int _spawnedClonesCount;
+
 #if UNITY_EDITOR
         [ReadOnlyInspectorField]
 #endif
-        [SerializeField] private int _despawnedClonesCount;
-        
+        [SerializeField]
+        private int _despawnedClonesCount;
+
 #if UNITY_EDITOR
         [Space, ReadOnlyInspectorField]
 #endif
-        [SerializeField] private int _spawnsCount;
-        
+        [SerializeField]
+        private int _spawnsCount;
+
 #if UNITY_EDITOR
         [ReadOnlyInspectorField]
 #endif
-        [SerializeField] private int _despawnsCount;
-        
+        [SerializeField]
+        private int _despawnsCount;
+
 #if UNITY_EDITOR
         [ReadOnlyInspectorField]
 #endif
-        [SerializeField] private int _total;
-        
+        [SerializeField]
+        private int _total;
+
 #if UNITY_EDITOR
         [Space, ReadOnlyInspectorField]
 #endif
-        [SerializeField] private int _instantiated;
+        [SerializeField]
+        private int _instantiated;
 
         [SerializeField, HideInInspector] private List<GameObject> _gameObjectsToPreload;
         [SerializeField, HideInInspector] private bool _hasPreloadedGameObjects;
 
-        internal Transform _cachedTransform;
-        internal Vector3 _regularPrefabScale;
-        internal bool _isSetup;
-        
-        private readonly NightPoolList<Poolable> _spawnedPoolables 
-            = new NightPoolList<Poolable>(Constants.DefaultPoolablesListCapacity);
-        
-        private readonly NightPoolList<Poolable> _despawnedPoolables 
-            = new NightPoolList<Poolable>(Constants.DefaultPoolablesListCapacity);
-        
+        internal Transform CachedTransform;
+        internal Vector3 RegularPrefabScale;
+        internal bool IsSetup;
+
+        private readonly NightPoolList<Poolable> _spawnedPoolables = new();
+
+        private readonly NightPoolList<Poolable> _despawnedPoolables = new();
+
         private NightPoolList<Poolable> _poolablesTemp;
         private Transform _prefabTransform;
 #if UNITY_EDITOR
@@ -111,7 +118,7 @@ namespace NTC.Pool
         /// The prefab attached to this pool.
         /// </summary>
         public GameObject AttachedPrefab => _prefab;
-        
+
         /// <summary>
         /// Pool overflow behaviour.
         /// </summary>
@@ -121,37 +128,37 @@ namespace NTC.Pool
         /// Clone despawn type.
         /// </summary>
         public DespawnType DespawnType => _despawnType;
-        
+
         /// <summary>
         /// Callbacks on clone spawn and despawn.
         /// </summary>
         public CallbacksType CallbacksType => _callbacksType;
-        
+
         /// <summary>
         /// Pool capacity.
         /// </summary>
         public int Capacity => _capacity;
-        
+
         /// <summary>
         /// Number of spawned clones.
         /// </summary>
         public int SpawnedClonesCount => _spawnedClonesCount;
-        
+
         /// <summary>
         /// Number of despawned clones.
         /// </summary>
         public int DespawnedClonesCount => _despawnedClonesCount;
-        
+
         /// <summary>
         /// Number of all clones.
         /// </summary>
         public int AllClonesCount => _allClonesCount;
-        
+
         /// <summary>
         /// Number of spawns.
         /// </summary>
         public int SpawnsCount => _spawnsCount;
-        
+
         /// <summary>
         /// Number of despawns.
         /// </summary>
@@ -161,12 +168,12 @@ namespace NTC.Pool
         /// Number of instantiates.
         /// </summary>
         public int InstantiatesCount => _instantiated;
-        
+
         /// <summary>
         /// Total number of spawns and despawns.
         /// </summary>
         public int TotalActionsCount => _total;
-        
+
         /// <summary>
         /// Has this pool registered as persistent?
         /// </summary>
@@ -175,13 +182,13 @@ namespace NTC.Pool
         /// <summary>
         /// The actions will be performed on a game object spawned by this pool.
         /// </summary>
-        public readonly NightPoolEvent<GameObject> GameObjectSpawned = new NightPoolEvent<GameObject>();
-        
+        public readonly NightPoolEvent<GameObject> GameObjectSpawned = new();
+
         /// <summary>
         /// The actions will be performed on a game object despawned by this pool.
         /// </summary>
         public readonly NightPoolEvent<GameObject> GameObjectDespawned = new NightPoolEvent<GameObject>();
-        
+
         /// <summary>
         /// The actions will be performed on a game object instantiated by this pool.
         /// </summary>
@@ -201,26 +208,24 @@ namespace NTC.Pool
         {
             if (_prefab == null)
                 return;
-            
+
             if (_dontDestroyOnLoad && HasRegisteredAsPersistent)
             {
                 DestroyPool();
                 return;
             }
-            
+
             if (TrySetup(_prefab))
-            {
                 PreloadElements(PreloadType.OnAwake);
-            }
         }
 
         private void Start()
         {
-            if (_isSetup)
-            {
-                PreloadElements(PreloadType.OnStart);
-                RaiseEventForPreloadedClonesAndClear();
-            }
+            if (!IsSetup)
+                return;
+
+            PreloadElements(PreloadType.OnStart);
+            RaiseEventForPreloadedClonesAndClear();
         }
 
         private void OnDestroy()
@@ -244,16 +249,14 @@ namespace NTC.Pool
         public void Init(GameObject prefab)
         {
 #if DEBUG
-            if (_isSetup)
+            if (IsSetup)
             {
                 if (_sendWarnings)
-                {
                     Debug.LogWarning("The pool is already initialized!", this);
-                }
-                
+
                 return;
             }
-            
+
             if (prefab == null)
             {
                 Debug.LogError("You are trying to initialize this pool with null prefab!", this);
@@ -269,11 +272,9 @@ namespace NTC.Pool
             }
 #endif
             if (TrySetup(prefab))
-            {
                 RaiseEventForPreloadedClonesAndClear();
-            }
         }
-        
+
         /// <summary>
         /// Populates this pool.
         /// </summary>
@@ -283,7 +284,7 @@ namespace NTC.Pool
         public void PopulatePool(int count)
         {
 #if DEBUG
-            if (_isSetup == false)
+            if (IsSetup == false)
             {
                 Debug.LogError($"The pool '{name}' is not setup!", this);
                 return;
@@ -291,8 +292,8 @@ namespace NTC.Pool
 
             if (Application.isPlaying == false)
             {
-                Debug.LogError($"You are trying to populate the pool '{name}' when the application is not playing!", 
-                    this); 
+                Debug.LogError($"You are trying to populate the pool '{name}' when the application is not playing!",
+                    this);
                 return;
             }
 
@@ -308,18 +309,16 @@ namespace NTC.Pool
                 {
 #if DEBUG
                     if (_sendWarnings)
-                    {
                         Debug.LogWarning($"The pool {name} reached max capacity!");
-                    }
 #endif
                     return;
                 }
-                
-                AddPoolableToList(_despawnedPoolables, InstantiateAndSetupPoolable(true), 
+
+                AddPoolableToList(_despawnedPoolables, InstantiateAndSetupPoolable(true),
                     ref _despawnedClonesCount);
             }
         }
-        
+
         /// <summary>
         /// Sets the capacity of this pool.
         /// </summary>
@@ -349,9 +348,7 @@ namespace NTC.Pool
             }
 
             if (_sendWarnings && capacity == 0)
-            {
                 Debug.LogWarning($"Capacity of the pool '{name}' is equals zero.");
-            }
 #endif
             _capacity = capacity;
             _preloadSize = Mathf.Clamp(_preloadSize, 0, _capacity);
@@ -361,37 +358,26 @@ namespace NTC.Pool
         /// Sets the behaviour on capacity reached of this pool.
         /// </summary>
         /// <param name="behaviourOnCapacityReached">New behaviour.</param>
-        public void SetBehaviourOnCapacityReached(BehaviourOnCapacityReached behaviourOnCapacityReached)
-        {
+        public void SetBehaviourOnCapacityReached(BehaviourOnCapacityReached behaviourOnCapacityReached) =>
             _behaviourOnCapacityReached = behaviourOnCapacityReached;
-        }
 
         /// <summary>
         /// Sets the despawn type of this pool.
         /// </summary>
         /// <param name="despawnType">New despawn type.</param>
-        public void SetDespawnType(DespawnType despawnType)
-        {
-            _despawnType = despawnType;
-        }
-        
+        public void SetDespawnType(DespawnType despawnType) => _despawnType = despawnType;
+
         /// <summary>
         /// Sets the callbacks type of this pool.
         /// </summary>
         /// <param name="callbacksType">New callbacks type.</param>
-        public void SetCallbacksType(CallbacksType callbacksType)
-        {
-            _callbacksType = callbacksType;
-        }
+        public void SetCallbacksType(CallbacksType callbacksType) => _callbacksType = callbacksType;
 
         /// <summary>
         /// Sets the warnings active of this pool.
         /// </summary>
         /// <param name="active">New warnings active status.</param>
-        public void SetWarningsActive(bool active)
-        {
-            _sendWarnings = active;
-        }
+        public void SetWarningsActive(bool active) => _sendWarnings = active;
 
         /// <summary>
         /// Performs an action for each clone.
@@ -402,24 +388,18 @@ namespace NTC.Pool
             ForEach(_spawnedPoolables, action);
             ForEach(_despawnedPoolables, action);
         }
-        
+
         /// <summary>
         /// Performs an action for each spawned clone.
         /// </summary>
         /// <param name="action">Action to perform.</param>
-        public void ForEachSpawnedClone(Action<GameObject> action)
-        {
-            ForEach(_spawnedPoolables, action);
-        }
+        public void ForEachSpawnedClone(Action<GameObject> action) => ForEach(_spawnedPoolables, action);
 
         /// <summary>
         /// Performs an action for each despawned clone.
         /// </summary>
         /// <param name="action">Action to perform.</param>
-        public void ForEachDespawnedClone(Action<GameObject> action)
-        {
-            ForEach(_despawnedPoolables, action);
-        }
+        public void ForEachDespawnedClone(Action<GameObject> action) => ForEach(_despawnedPoolables, action);
 
         /// <summary>
         /// Destroys this pool with clones.
@@ -438,7 +418,7 @@ namespace NTC.Pool
             Clear();
             DestroyImmediate(gameObject);
         }
-        
+
         /// <summary>
         /// Destroys all clones in this pool (also destroys preloaded clones).
         /// </summary>
@@ -452,7 +432,7 @@ namespace NTC.Pool
             DestroyAllClonesImmediate();
             ResetCounts();
         }
-        
+
         /// <summary>
         /// Destroys all clones in this pool.
         /// </summary>
@@ -465,18 +445,14 @@ namespace NTC.Pool
         /// <summary>
         /// Destroys spawned clones in this pool.
         /// </summary>
-        public void DestroySpawnedClones()
-        {
+        public void DestroySpawnedClones() =>
             DisposePoolablesInList(_spawnedPoolables, ref _spawnedClonesCount, false);
-        }
 
         /// <summary>
         /// Destroys despawned clones in this pool.
         /// </summary>
-        public void DestroyDespawnedClones()
-        {
+        public void DestroyDespawnedClones() =>
             DisposePoolablesInList(_despawnedPoolables, ref _despawnedClonesCount, false);
-        }
 
         /// <summary>
         /// Destroys all clones in this pool immediately.
@@ -490,56 +466,48 @@ namespace NTC.Pool
         /// <summary>
         /// Destroys spawned clones in this pool immediately.
         /// </summary>
-        public void DestroySpawnedClonesImmediate()
-        {
+        public void DestroySpawnedClonesImmediate() =>
             DisposePoolablesInList(_spawnedPoolables, ref _spawnedClonesCount, true);
-        }
 
         /// <summary>
         /// Destroys despawned clones in this pool immediately.
         /// </summary>
-        public void DestroyDespawnedClonesImmediate()
-        {
+        public void DestroyDespawnedClonesImmediate() =>
             DisposePoolablesInList(_despawnedPoolables, ref _despawnedClonesCount, true);
-        }
 
         /// <summary>
         /// Despawns all spawned clones.
         /// </summary>
         public void DespawnAllClones()
         {
-            _poolablesTemp ??= new NightPoolList<Poolable>(Constants.DefaultPoolablesListCapacity);
+            _poolablesTemp ??= new NightPoolList<Poolable>();
 
-            for (int i = 0; i < _spawnedPoolables._count; i++)
-            {
-                _poolablesTemp.Add(_spawnedPoolables._components[i]);
-            }
+            for (var i = 0; i < _spawnedPoolables.Count; i++)
+                _poolablesTemp.Add(_spawnedPoolables.Components[i]);
 
-            for (int i = 0; i < _poolablesTemp._count; i++)
-            {
-                NightPool.DespawnImmediate(_poolablesTemp._components[i]);
-            }
+            for (var i = 0; i < _poolablesTemp.Count; i++)
+                NightPool.DespawnImmediate(_poolablesTemp.Components[i]);
 
-            if (_poolablesTemp._count > 0)
+            if (_poolablesTemp.Count > 0)
             {
                 _poolablesTemp.Clear();
-                _poolablesTemp.SetCapacity(Constants.DefaultPoolablesListCapacity);
+                _poolablesTemp.SetCapacity(Constants.PoolablesListCapacity);
             }
         }
 
         internal bool TrySetup(GameObject prefab)
         {
-            if (_isSetup)
+            if (IsSetup)
                 return false;
-            
+
 #if UNITY_EDITOR
             if (Application.isPlaying == false)
             {
                 Debug.LogError("You can't setup a pool when application is not playing!", this);
                 return false;
             }
-            
-            if (NightPool.s_checkForPrefab)
+
+            if (NightPool.CheckForPrefab)
             {
                 if (CheckForPrefab(prefab) == false)
                 {
@@ -550,10 +518,10 @@ namespace NTC.Pool
             _cachedPrefab = prefab;
 #endif
             _prefab = prefab;
-            _cachedTransform = transform;
+            CachedTransform = transform;
             _prefabTransform = prefab.transform;
-            _regularPrefabScale = _prefabTransform.localScale;
-            
+            RegularPrefabScale = _prefabTransform.localScale;
+
             if (_dontDestroyOnLoad)
             {
                 if (TryRegisterPoolAsPersistent() == false)
@@ -566,10 +534,10 @@ namespace NTC.Pool
             {
                 SetupPreloadedClones();
             }
-            
+
             NightPool.RegisterPool(this);
-            
-            _isSetup = true;
+
+            IsSetup = true;
             return true;
         }
 
@@ -581,44 +549,36 @@ namespace NTC.Pool
 
         internal void Get(out GettingPoolableArguments arguments)
         {
-            if (_despawnedPoolables._count <= 0)
+            if (_despawnedPoolables.Count <= 0)
             {
                 if (_allClonesCount >= _capacity)
                 {
-                    if (_behaviourOnCapacityReached == BehaviourOnCapacityReached.Recycle)
-                    {
-                        Poolable poolable = _spawnedPoolables._components[0];
-                        _spawnedPoolables.RemoveAt(0);
-                        _spawnedPoolables.Add(poolable);
-                        arguments = new GettingPoolableArguments(poolable, false);
-                        return;
-                    }
-                    
-                    if (_behaviourOnCapacityReached == BehaviourOnCapacityReached.InstantiateWithCallbacks)
-                    {
-                        InstantiatePoolableOverCapacity(out arguments);
-                        return;
-                    }
-                    
-                    if (_behaviourOnCapacityReached == BehaviourOnCapacityReached.Instantiate)
-                    {
-                        InstantiatePoolableOverCapacity(out arguments);
-                        return;
-                    }
+                    var poolable = _spawnedPoolables.Components[0];
 
-                    if (_behaviourOnCapacityReached == BehaviourOnCapacityReached.ReturnNullableClone)
+                    switch (_behaviourOnCapacityReached)
                     {
-                        arguments = new GettingPoolableArguments(null, true);
-                        return;
-                    }
-
-                    if (_behaviourOnCapacityReached == BehaviourOnCapacityReached.ThrowException)
-                    {
+                        case BehaviourOnCapacityReached.Recycle:
+                            _spawnedPoolables.RemoveAt(0);
+                            _spawnedPoolables.Add(poolable);
+                            arguments = new GettingPoolableArguments(poolable, false);
+                            return;
+                        case BehaviourOnCapacityReached.InstantiateWithCallbacks:
+                            InstantiatePoolableOverCapacity(out arguments);
+                            return;
+                        case BehaviourOnCapacityReached.Instantiate:
+                            InstantiatePoolableOverCapacity(out arguments);
+                            return;
+                        case BehaviourOnCapacityReached.ReturnNullableClone:
+                            arguments = new GettingPoolableArguments(null, true);
+                            return;
+                        case BehaviourOnCapacityReached.ThrowException:
 #if DEBUG
-                        Debug.LogException(new Exception("Capacity reached! You can't spawn a new clone!"), this);
+                            Debug.LogException(new Exception("Capacity reached! You can't spawn a new clone!"), this);
 #endif
-                        arguments = new GettingPoolableArguments(null, true);
-                        return;
+                            arguments = new GettingPoolableArguments(null, true);
+                            return;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
 
@@ -627,31 +587,35 @@ namespace NTC.Pool
                 return;
             }
 
-            arguments = new GettingPoolableArguments(_despawnedPoolables._components[0], false);
-            AddPoolableToList(_spawnedPoolables, _despawnedPoolables._components[0], ref _spawnedClonesCount);
+            arguments = new GettingPoolableArguments(_despawnedPoolables.Components[0], false);
+            AddPoolableToList(_spawnedPoolables, _despawnedPoolables.Components[0], ref _spawnedClonesCount);
             RemoveFirstPoolableUnordered(_despawnedPoolables, ref _despawnedClonesCount);
         }
 
         internal void Release(Poolable poolable)
         {
-            if (poolable._status == PoolableStatus.Despawned)
+            if (poolable.Status == PoolableStatus.Despawned)
             {
 #if DEBUG
                 if (_sendWarnings)
                 {
-                    Debug.LogWarning($"The poolable '{poolable._gameObject}' has already despawned!", 
-                        poolable._gameObject);
+                    Debug.LogWarning($"The poolable '{poolable.GameObject}' has already despawned!",
+                        poolable.GameObject);
                 }
 #endif
                 return;
             }
-            
-            poolable._gameObject.SetActive(false);
+
+            poolable.GameObject.SetActive(false);
 
             switch (_despawnType)
             {
-                case DespawnType.DeactivateAndHide: HidePoolable(poolable); break;
-                case DespawnType.DeactivateAndSetNullParent: SetPoolableParentAsNull(poolable); break;
+                case DespawnType.DeactivateAndHide:
+                    HidePoolable(poolable);
+                    break;
+                case DespawnType.DeactivateAndSetNullParent:
+                    SetPoolableParentAsNull(poolable);
+                    break;
                 case DespawnType.OnlyDeactivate: break;
                 default: throw new ArgumentOutOfRangeException(nameof(_despawnType));
             }
@@ -660,25 +624,21 @@ namespace NTC.Pool
             RemovePoolableUnorderedFromList(_spawnedPoolables, poolable, ref _spawnedClonesCount);
         }
 
-        internal void RaiseGameObjectSpawnedCallback(GameObject spawnedGameObject)
-        {
+        internal void RaiseGameObjectSpawnedCallback(GameObject spawnedGameObject) =>
             RaisePoolActionCallback(spawnedGameObject, ref _spawnsCount, GameObjectSpawned);
-        }
 
-        internal void RaiseGameObjectDespawnedCallback(GameObject despawnedGameObject)
-        {
+        internal void RaiseGameObjectDespawnedCallback(GameObject despawnedGameObject) =>
             RaisePoolActionCallback(despawnedGameObject, ref _despawnsCount, GameObjectDespawned);
-        }
 
         private void InstantiatePoolableOverCapacity(out GettingPoolableArguments arguments)
         {
-            GameObject newGameObject = Instantiate(_prefab);
-            SetupPoolableAsSpawnedOverCapacity(newGameObject, out Poolable poolable);
+            var newGameObject = Instantiate(_prefab);
+            SetupPoolableAsSpawnedOverCapacity(newGameObject, out var poolable);
             arguments = new GettingPoolableArguments(poolable, false);
-            RaiseGameObjectInstantiatedCallback(poolable._gameObject);
+            RaiseGameObjectInstantiatedCallback(poolable.GameObject);
         }
 
-        private void RaisePoolActionCallback(GameObject clone, ref int actionCount, 
+        private void RaisePoolActionCallback(GameObject clone, ref int actionCount,
             NightPoolEvent<GameObject> poolEvent)
         {
             _total++;
@@ -688,28 +648,22 @@ namespace NTC.Pool
 
         private void RaiseEventForPreloadedClonesAndClear()
         {
-            if (_hasPreloadedGameObjects)
-            {
-                for (int i = 0; i < _gameObjectsToPreload.Count; i++)
-                {
-                    GameObjectInstantiated.RaiseEvent(_gameObjectsToPreload[i]);
-                }
+            if (!_hasPreloadedGameObjects)
+                return;
 
-                _hasPreloadedGameObjects = false;
-                _gameObjectsToPreload = null;
-            }
-        }
-        
-        private void HidePoolable(Poolable poolable)
-        {
-            poolable._transform.SetParent(_cachedTransform, true);
+            foreach (var preloadObject in _gameObjectsToPreload)
+                GameObjectInstantiated.RaiseEvent(preloadObject);
+
+            _hasPreloadedGameObjects = false;
+            _gameObjectsToPreload = null;
         }
 
-        private void SetPoolableParentAsNull(Poolable poolable)
-        {
-            poolable._transform.SetParent(null, false);
-        }
-        
+        private void HidePoolable(Poolable poolable) =>
+            poolable.Transform.SetParent(CachedTransform, true);
+
+        private void SetPoolableParentAsNull(Poolable poolable) =>
+            poolable.Transform.SetParent(null, false);
+
         private void RaiseGameObjectInstantiatedCallback(GameObject instantiatedGameObject)
         {
             _instantiated++;
@@ -746,7 +700,7 @@ namespace NTC.Pool
                 Debug.LogError("Capacity must not be less than the number of preloaded clones!", this);
                 _capacity = _gameObjectsToPreload.Count;
             }
-            
+
             if (_despawnedPoolables != null)
             {
                 if (_capacity < _allClonesCount)
@@ -756,7 +710,7 @@ namespace NTC.Pool
                 }
             }
         }
-        
+
         private void ClampPreloadSize()
         {
             if (_preloadSize > _capacity)
@@ -764,83 +718,77 @@ namespace NTC.Pool
                 _preloadSize = _capacity;
             }
         }
-        
+
         private void CheckPreloadedClonesForErrors()
         {
-            if (_hasPreloadedGameObjects)
+            if (!_hasPreloadedGameObjects)
+                return;
+
+            var isApplicationPlaying = Application.isPlaying;
+
+            if (_prefab == null)
             {
-                bool isApplicationPlaying = Application.isPlaying;
-                
-                if (_prefab == null)
+                Debug.LogError("You have preloaded game objects in this pool, but prefab is null now! " +
+                               "Set the correct prefab to fix this or clear this pool.", this);
+            }
+
+            foreach (var clone in _gameObjectsToPreload)
+            {
+                if (clone == null)
                 {
-                    Debug.LogError("You have preloaded game objects in this pool, but prefab is null now! " +
-                                   "Set the correct prefab to fix this or clear this pool.", this);
+                    Debug.LogError("One of the preloaded game objects of this pool is null! " +
+                                   "Clear this pool to fix this.", this);
+                    return;
                 }
 
-                for (int i = 0; i < _gameObjectsToPreload.Count; i++)
-                {
-                    GameObject clone = _gameObjectsToPreload[i];
-                    
-                    if (clone == null)
-                    {
-                        Debug.LogError("One of the preloaded game objects of this pool is null! " +
-                                       "Clear this pool to fix this.", this);
-                        return;
-                    }
-                    
-                    if (isApplicationPlaying == false && 
-                        PrefabUtility.GetCorrespondingObjectFromSource(clone) != _prefab)
-                    {
-                        Debug.LogError("Your preloaded game objects no longer match the prefab. " +
-                                       "Clear this pool or set the correct prefab.", this);
-                        return;
-                    }
-                }
+                if (isApplicationPlaying || PrefabUtility.GetCorrespondingObjectFromSource(clone) == _prefab)
+                    continue;
+
+                Debug.LogError("Your preloaded game objects no longer match the prefab. " +
+                               "Clear this pool or set the correct prefab.", this);
+                return;
             }
         }
 
         private void CheckForPrefabMatchOnPlay()
         {
-            if (_isSetup && Application.isPlaying)
-            {
-                if (_cachedPrefab != null && _prefab != _cachedPrefab)
-                {
-                    _prefab = _cachedPrefab;
-                }
-            }
+            if (!IsSetup || !Application.isPlaying)
+                return;
+
+            if (_cachedPrefab != null && _prefab != _cachedPrefab)
+                _prefab = _cachedPrefab;
         }
 #endif
-        
+
         private static void ForEach(NightPoolList<Poolable> list, Action<GameObject> action)
         {
 #if DEBUG
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
 #endif
-            for (int i = 0; i < list._count; i++)
-            {
-                action.Invoke(list._components[i]._gameObject);
-            }
+            for (var i = 0; i < list.Count; i++)
+                action.Invoke(list.Components[i].GameObject);
         }
-        
+
+        // ReSharper disable once RedundantAssignment
         private void DisposePoolablesInList(NightPoolList<Poolable> nightPoolList, ref int count, bool immediately)
         {
-            for (int i = 0; i < nightPoolList._count; i++)
+            for (var i = 0; i < nightPoolList.Count; i++)
             {
-                nightPoolList._components[i].Dispose(immediately);
+                nightPoolList.Components[i].Dispose(immediately);
                 _allClonesCount--;
             }
-            
+
             nightPoolList.Clear();
             count = 0;
         }
-        
+
         private bool TryRegisterPoolAsPersistent()
         {
             if (NightPool.HasPoolRegisteredAsPersistent(this) == false)
             {
 #if DEBUG
-                if (_cachedTransform.parent != null)
+                if (CachedTransform.parent != null)
                 {
                     Debug.LogError("The pool can't be persistent! " +
                                    "Because this GameObject has parent Transform and " +
@@ -854,11 +802,11 @@ namespace NTC.Pool
                 NightPool.RegisterPersistentPool(this);
                 return true;
             }
-            
+
             DestroyPool();
             return false;
         }
-        
+
         private void AddPoolableToList(NightPoolList<Poolable> nightPoolList,
             Poolable poolable, ref int count)
         {
@@ -866,25 +814,27 @@ namespace NTC.Pool
             count++;
             _allClonesCount++;
         }
-        
+
         private void RemovePoolableUnorderedFromList(NightPoolList<Poolable> nightPoolList,
             Poolable poolable, ref int count)
         {
-            for (int i = 0; i < nightPoolList._count; i++)
+            for (var i = 0; i < nightPoolList.Count; i++)
             {
-                if (nightPoolList._components[i] == poolable)
-                {
-                    nightPoolList.RemoveUnorderedAt(i);
-                    count--;
-                    _allClonesCount--;
-                    return;
-                }
+                if (nightPoolList.Components[i] != poolable)
+                    continue;
+                
+                nightPoolList.RemoveUnorderedAt(i);
+                count--;
+                _allClonesCount--;
+                
+                return;
             }
         }
 
         private void RemoveFirstPoolableUnordered(NightPoolList<Poolable> nightPoolList, ref int count)
         {
             nightPoolList.RemoveUnorderedAt(0);
+            
             count--;
             _allClonesCount--;
         }
@@ -893,30 +843,25 @@ namespace NTC.Pool
         [ContextMenu("Preload")]
         private void Preload()
         {
-            for (int i = 0; i < _preloadSize; i++)
+            for (var i = 0; i < _preloadSize; i++)
             {
                 if (TryPreloadGameObject() == false)
-                {
                     return;
-                }
             }
         }
 
         [ContextMenu("Preload One")]
-        private void PreloadOne()
-        {
+        private void PreloadOne() =>
             TryPreloadGameObject();
-        }
 
         private bool TryPreloadGameObject()
         {
-            if (CanPreloadGameObject())
-            {
-                PreloadGameObject();
-                return true;
-            }
+            if (!CanPreloadGameObject())
+                return false;
+            
+            PreloadGameObject();
+            return true;
 
-            return false;
         }
 
         private bool CanPreloadGameObject()
@@ -926,39 +871,33 @@ namespace NTC.Pool
                 Debug.LogError($"The prefab of the pool '{name}' is null!", this);
                 return false;
             }
-            
-            if (CheckForPrefab(_prefab) == false)
-            {
-                return false;
-            }
-            
-            if (_gameObjectsToPreload.Count >= _capacity || _allClonesCount >= _capacity)
-            {
-                if (_sendWarnings)
-                {
-                    Debug.LogWarning("Capacity reached! You can't preload more game objects!", this);
-                }
-                
-                return false;
-            }
 
-            return true;
+            if (CheckForPrefab(_prefab) == false)
+                return false;
+
+            if (_gameObjectsToPreload.Count < _capacity && _allClonesCount < _capacity)
+                return true;
+
+            if (_sendWarnings)
+                Debug.LogWarning("Capacity reached! You can't preload more game objects!", this);
+
+            return false;
+
         }
-        
+
         private void PreloadGameObject()
         {
-            GameObject gameObjectToPreload = PrefabUtility.InstantiatePrefab(_prefab, transform) as GameObject;
+            var gameObjectToPreload = PrefabUtility.InstantiatePrefab(_prefab, transform) as GameObject;
 
-            if (gameObjectToPreload == null) 
+            if (gameObjectToPreload == null)
                 return;
-            
-            gameObjectToPreload.SetActive(false);
 
+            gameObjectToPreload.SetActive(false);
             _instantiated++;
 
             if (Application.isPlaying)
             {
-                SetupPoolableAsDefault(gameObjectToPreload, out Poolable poolable);
+                SetupPoolableAsDefault(gameObjectToPreload, out var poolable);
                 AddPoolableToList(_despawnedPoolables, poolable, ref _despawnedClonesCount);
             }
             else
@@ -968,7 +907,7 @@ namespace NTC.Pool
             }
         }
 #endif
-        
+
         private void PreloadElements(PreloadType requiredType)
         {
             if (_preloadType != requiredType)
@@ -976,15 +915,14 @@ namespace NTC.Pool
 
             if (_allClonesCount >= _capacity)
                 return;
-            
+
             PopulatePool(_preloadSize);
         }
 
         private void SetupPreloadedClones()
         {
-            for (var i = 0; i < _gameObjectsToPreload.Count; i++)
+            foreach (var clone in _gameObjectsToPreload)
             {
-                GameObject clone = _gameObjectsToPreload[i];
 #if DEBUG
                 if (clone == null)
                 {
@@ -994,25 +932,23 @@ namespace NTC.Pool
                     continue;
                 }
 #endif
-                SetupPoolableAsDefault(clone, out Poolable poolable);
+                SetupPoolableAsDefault(clone, out var poolable);
                 AddPoolableToList(_despawnedPoolables, poolable, ref _despawnedClonesCount);
             }
         }
-        
+
         private Poolable InstantiateAndSetupPoolable(bool isPopulatingPool)
         {
-            GameObject newGameObject = Instantiate(_prefab);
-            SetupPoolableAsDefault(newGameObject, out Poolable poolable);
-            
+            var newGameObject = Instantiate(_prefab);
+            SetupPoolableAsDefault(newGameObject, out var poolable);
+
             if (_dontDestroyOnLoad)
-            {
                 DontDestroyOnLoad(newGameObject);
-            }
-            
+
             if (isPopulatingPool)
             {
-                poolable._gameObject.SetActive(false);
-                poolable._transform.SetParent(_isSetup ? _cachedTransform : transform, false);
+                poolable.GameObject.SetActive(false);
+                poolable.Transform.SetParent(IsSetup ? CachedTransform : transform, false);
             }
 
             NightPool.GameObjectInstantiated.RaiseEvent(newGameObject);
@@ -1036,24 +972,22 @@ namespace NTC.Pool
         {
             return new Poolable
             {
-                _pool = this,
-                _gameObject = clone,
-                _transform = clone.transform   
+                Pool = this,
+                GameObject = clone,
+                Transform = clone.transform
             };
         }
 
         private void ClearGameObjectsToPreload()
         {
-            if (_gameObjectsToPreload != null)
-            {
-                for (int i = 0; i < _gameObjectsToPreload.Count; i++)
-                {
-                    DestroyImmediate(_gameObjectsToPreload[i]);
-                }
-                
-                _gameObjectsToPreload.Clear();
-                _hasPreloadedGameObjects = false;
-            }
+            if (_gameObjectsToPreload == null)
+                return;
+
+            foreach (var preloadObject in _gameObjectsToPreload)
+                DestroyImmediate(preloadObject);
+
+            _gameObjectsToPreload.Clear();
+            _hasPreloadedGameObjects = false;
         }
 
         private void ResetCounts()
@@ -1089,6 +1023,8 @@ namespace NTC.Pool.Attributes
     }
 
     [AttributeUsage(AttributeTargets.Field)]
-    public sealed class ReadOnlyInspectorFieldAttribute : PropertyAttribute { }
+    public sealed class ReadOnlyInspectorFieldAttribute : PropertyAttribute
+    {
+    }
 }
 #endif

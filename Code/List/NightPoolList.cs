@@ -19,36 +19,36 @@ namespace NTC.Pool
 #endif
     internal sealed class NightPoolList<T>
     {
-        internal T[] _components;
-        internal int _count;
+        internal T[] Components;
+        internal int Count;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal NightPoolList(int capacity = 32)
         {
 #if DEBUG
-            if (capacity <= 0) 
+            if (capacity <= 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be greater than zero!");
 #endif
-            _components = new T[capacity];
-            _count = 0;
+            Components = new T[capacity];
+            Count = 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Add(in T component)
         {
-            if (_count >= _components.Length)
-                Array.Resize(ref _components, _components.Length << 1);
+            if (Count >= Components.Length)
+                Array.Resize(ref Components, Components.Length << 1);
 
-            _components[_count++] = component;
+            Components[Count++] = component;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void RemoveUnorderedAt(int id)
         {
-            var lastComponentId = _count - 1;
-            _components[id] = _components[lastComponentId];
-            _components[lastComponentId] = default;
-            _count--;
+            var lastComponentId = Count - 1;
+            Components[id] = Components[lastComponentId];
+            Components[lastComponentId] = default;
+            Count--;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -57,45 +57,43 @@ namespace NTC.Pool
 #if DEBUG
             CheckForRemove(id);
 #endif
-            for (int i = id; i < _count; i++)
-            {
-                _components[i] = i + 1 < _count ? _components[i + 1] : default;
-            }
-            
-            _count--;
+            for (var i = id; i < Count; i++)
+                Components[i] = i + 1 < Count ? Components[i + 1] : default;
+
+            Count--;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Clear()
         {
-            Array.Clear(_components, 0, _count);
-            _count = 0;
+            Array.Clear(Components, 0, Count);
+            Count = 0;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void SetCapacity(int capacity)
         {
 #if DEBUG
-            if (capacity <= 0) 
+            if (capacity <= 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be greater than zero!");
 #endif
-            if (_components.Length == capacity)
+            if (Components.Length == capacity)
                 return;
-            
-            Array.Resize(ref _components, capacity);
 
-            if (_count > capacity)
-                _count = capacity;
+            Array.Resize(ref Components, capacity);
+
+            if (Count > capacity)
+                Count = capacity;
         }
 
 #if DEBUG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CheckForRemove(int id)
         {
-            if (_count <= id)
+            if (Count <= id)
                 throw new ArgumentOutOfRangeException(nameof(id), "Index is greater than count!");
-            
-            if (_count <= 0)
+
+            if (Count <= 0)
                 throw new ArgumentOutOfRangeException(nameof(id), "List is empty, nothing to remove!");
         }
 #endif

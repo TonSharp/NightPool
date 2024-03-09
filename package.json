@@ -1,14 +1,13 @@
 {
-    "name": "com.nighttraincode.nightpool",
+    "name": "com.intgames.nightpool",
     "author": 
 	{
-		"name": "Night Train Code",
-		"url": "https://www.youtube.com/@NightTrainCode/"
+		"name": "INT Games"
 	},
     "displayName": "Night Pool",
     "description": "Night Pool is a fast game object pool for Unity.",
-    "unity": "2020.3",
-    "version": "3.1.1",
+    "unity": "2023.2",
+    "version": "4.0.0",
     "keywords": [
         "nightpool",
         "objectpool",
@@ -19,6 +18,6 @@
     "dependencies": {},
     "repository": {
         "type": "git",
-        "url": "https://github.com/MeeXaSiK/NightPool.git"
+        "url": "https://github.com/TonSharp/NightPool.git"
     }
 }

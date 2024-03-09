@@ -20,42 +20,43 @@ namespace NTC.Pool
 #endif
     internal sealed class Poolable
     {
-        internal NightGameObjectPool _pool;
-        internal Transform _transform;
-        internal GameObject _gameObject;
-        internal PoolableStatus _status;
-        internal bool _isSetup;
+        internal bool IsSetup;
+        internal PoolableStatus Status;
         
+        internal Transform Transform;
+        internal GameObject GameObject;
+        internal NightGameObjectPool Pool;
+
         internal void SetupAsDefault()
         {
 #if DEBUG
-            if (_isSetup)
+            if (IsSetup)
                 throw new Exception("Poolable is already setup!");
 #endif
-            NightPool.ClonesMap.Add(_gameObject, this);
-            _status = PoolableStatus.Despawned;
-            _isSetup = true;
+            NightPool.ClonesMap.Add(GameObject, this);
+            Status = PoolableStatus.Despawned;
+            IsSetup = true;
         }
-        
+
         internal void SetupAsSpawnedOverCapacity()
         {
 #if DEBUG
-            if (_isSetup)
+            if (IsSetup)
                 throw new Exception("Poolable is already setup!");
 #endif
-            NightPool.ClonesMap.Add(_gameObject, this);
-            _status = PoolableStatus.SpawnedOverCapacity;
-            _isSetup = true;
+            NightPool.ClonesMap.Add(GameObject, this);
+            Status = PoolableStatus.SpawnedOverCapacity;
+            IsSetup = true;
         }
 
         internal void Dispose(bool immediately)
         {
-            NightPool.ClonesMap.Remove(_gameObject);
-            
+            NightPool.ClonesMap.Remove(GameObject);
+
             if (immediately)
-                Object.DestroyImmediate(_gameObject);
+                Object.DestroyImmediate(GameObject);
             else
-                Object.Destroy(_gameObject);
+                Object.Destroy(GameObject);
         }
     }
 }
