@@ -20,10 +20,8 @@ namespace NTC.Pool
         public void AddListener(Action<T> action)
         {
 #if DEBUG
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
 #endif
-            _action += action;
+            _action += action ?? throw new ArgumentNullException(nameof(action));
             _hasAction = _action != null;
         }
 
@@ -44,14 +42,12 @@ namespace NTC.Pool
             _action = null;
             _hasAction = false;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void RaiseEvent(T objectToRaise)
         {
             if (_hasAction)
-            {
                 _action.Invoke(objectToRaise);
-            }
         }
     }
 }

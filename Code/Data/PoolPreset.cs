@@ -16,18 +16,25 @@ namespace NTC.Pool
     {
 #if UNITY_EDITOR
         [SerializeField] private string _name;
+
         [Space]
 #endif
-        [SerializeField] private bool _enabled = true;
+        [SerializeField]
+        private bool _enabled = true;
+
         [SerializeField] private GameObject _prefab;
-        [Tooltip(Constants.Tooltips.OverflowBehaviour)]
-        [SerializeField] private BehaviourOnCapacityReached _behaviourOnCapacityReached = Constants.DefaultBehaviourOnCapacityReached;
-        [Tooltip(Constants.Tooltips.DespawnType)]
-        [SerializeField] private DespawnType _despawnType = Constants.DefaultDespawnType;
-        [Tooltip(Constants.Tooltips.CallbacksType)]
-        [SerializeField] private CallbacksType _callbacksType = Constants.DefaultCallbacksType;
-        [SerializeField, Min(0)] private int _capacity;
-        [SerializeField, Min(0)] private int _preloadSize;
+
+        [Tooltip(Constants.Tooltips.OverflowBehaviour)] [SerializeField]
+        private BehaviourOnCapacityReached _behaviourOnCapacityReached = Constants.BehaviourOnCapacityReached;
+
+        [Tooltip(Constants.Tooltips.DespawnTypeTooltip)] [SerializeField]
+        private DespawnType _despawnType = Constants.DespawnType;
+
+        [Tooltip(Constants.Tooltips.CallbacksTypeTooltip)] [SerializeField]
+        private CallbacksType _callbacksType = Constants.CallbacksType;
+
+        [SerializeField] [Min(0)] private int _capacity;
+        [SerializeField] [Min(0)] private int _preloadSize;
         [SerializeField] private bool _dontDestroyOnLoad;
         [SerializeField] private bool _warnings = true;
 

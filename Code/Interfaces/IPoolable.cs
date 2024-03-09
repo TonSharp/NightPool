@@ -1,7 +1,4 @@
 ﻿namespace NTC.Pool
 {
-    public interface IPoolable : ISpawnable, IDespawnable
-    {
-        
-    }
+    public interface IPoolable : ISpawnable, IDespawnable { }
 }
